@@ -1,11 +1,17 @@
 from flask import Flask, render_template, request, redirect, session
-import pandas as pd
-import os
+from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from twilio.rest import Client
+import os
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
+
+# ================= DATABASE CONFIG =================
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://barber_db_ovdg_user:e5uXnjpkpuDvQOdBBN94CFK08cSbcJES@dpg-d68ogrrh46gs73fi2iug-a/barber_db_ovdg"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
 
 # ================= TWILIO CONFIG =================
 ACCOUNT_SID = "AC4bc26a9092d39133343b87141f33495a"
@@ -14,32 +20,32 @@ TWILIO_PHONE = "+918968199945"
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
-# ================= FILE PATHS =================
-APPOINTMENT_FILE = "appointments.xlsx"
-TOKEN_FILE = "current_token.xlsx"
+# ================= MODELS =================
 
-# ================= INIT DATABASE =================
-def init_files():
-    if not os.path.exists(APPOINTMENT_FILE):
-        df = pd.DataFrame(columns=["name","mobile","barber","service","date","token"])
-        df.to_excel(APPOINTMENT_FILE, index=False)
+class Appointment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    mobile = db.Column(db.String(20))
+    barber = db.Column(db.String(50))
+    service = db.Column(db.String(50))
+    date = db.Column(db.String(20))
+    token = db.Column(db.Integer)
 
-    if not os.path.exists(TOKEN_FILE):
-        df = pd.DataFrame(columns=["date","current_token"])
-        df.to_excel(TOKEN_FILE, index=False)
+class CurrentToken(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.String(20), unique=True)
+    current_token = db.Column(db.Integer)
 
-init_files()
+# ================= CREATE TABLES =================
+with app.app_context():
+    db.create_all()
 
 # ================= HOME =================
 @app.route("/")
 def index():
     today = str(datetime.today().date())
-    df = pd.read_excel(TOKEN_FILE)
-
-    current_token = 0
-    if today in df["date"].astype(str).values:
-        current_token = df[df["date"].astype(str)==today]["current_token"].values[0]
-
+    token_entry = CurrentToken.query.filter_by(date=today).first()
+    current_token = token_entry.current_token if token_entry else 0
     return render_template("index.html", current_token=current_token)
 
 # ================= BOOK =================
@@ -51,26 +57,25 @@ def book():
     service = request.form["service"]
     today = str(datetime.today().date())
 
-    df = pd.read_excel(APPOINTMENT_FILE)
-
-    # Prevent duplicate mobile booking
-    if mobile in df[df["date"].astype(str)==today]["mobile"].astype(str).values:
+    # Prevent duplicate booking
+    existing = Appointment.query.filter_by(mobile=mobile, date=today).first()
+    if existing:
         return "You already have a booking today."
 
-    todays = df[df["date"].astype(str)==today]
-    token = 1 if todays.empty else todays["token"].max() + 1
+    todays = Appointment.query.filter_by(date=today).all()
+    token = 1 if not todays else max(a.token for a in todays) + 1
 
-    new_row = {
-        "name": name,
-        "mobile": mobile,
-        "barber": barber,
-        "service": service,
-        "date": today,
-        "token": token
-    }
+    new_appointment = Appointment(
+        name=name,
+        mobile=mobile,
+        barber=barber,
+        service=service,
+        date=today,
+        token=token
+    )
 
-    df = pd.concat([df, pd.DataFrame([new_row])])
-    df.to_excel(APPOINTMENT_FILE, index=False)
+    db.session.add(new_appointment)
+    db.session.commit()
 
     # Send SMS
     try:
@@ -100,11 +105,8 @@ def admin():
         return redirect("/login")
 
     today = str(datetime.today().date())
-    df = pd.read_excel(TOKEN_FILE)
-
-    current_token = 0
-    if today in df["date"].astype(str).values:
-        current_token = df[df["date"].astype(str)==today]["current_token"].values[0]
+    token_entry = CurrentToken.query.filter_by(date=today).first()
+    current_token = token_entry.current_token if token_entry else 0
 
     return render_template("admin.html", current_token=current_token)
 
@@ -115,16 +117,16 @@ def next_token():
         return redirect("/login")
 
     today = str(datetime.today().date())
-    df = pd.read_excel(TOKEN_FILE)
+    token_entry = CurrentToken.query.filter_by(date=today).first()
 
-    if today in df["date"].astype(str).values:
-        df.loc[df["date"].astype(str)==today,"current_token"] += 1
+    if token_entry:
+        token_entry.current_token += 1
     else:
-        new_row = {"date":today,"current_token":1}
-        df = pd.concat([df,pd.DataFrame([new_row])])
+        token_entry = CurrentToken(date=today, current_token=1)
+        db.session.add(token_entry)
 
-    df.to_excel(TOKEN_FILE,index=False)
+    db.session.commit()
     return redirect("/admin")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=10000)
