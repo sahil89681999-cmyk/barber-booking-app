@@ -8,9 +8,9 @@ app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
 # ================= TWILIO CONFIG =================
-ACCOUNT_SID = "PASTE_TWILIO_SID"
-AUTH_TOKEN = "PASTE_TWILIO_AUTH"
-TWILIO_PHONE = "PASTE_TWILIO_NUMBER"
+ACCOUNT_SID = "AC4bc26a9092d39133343b87141f33495a"
+AUTH_TOKEN = "d30ff50c3e070d39d061d803fed8a5f5"
+TWILIO_PHONE = "+918968199945"
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
