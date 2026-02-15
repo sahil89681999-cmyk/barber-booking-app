@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Barber Booking</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+<h1>Book Appointment</h1>
+<h2>Current Token: {{current_token}}</h2>
+
+<form action="/book" method="POST">
+<input type="text" name="name" placeholder="Your Name" required>
+<input type="text" name="mobile" placeholder="Mobile Number" required>
+
+<select name="barber">
+<option>Raj</option>
+<option>Sameer</option>
+</select>
+
+<select name="service">
+<option>Haircut</option>
+<option>Beard</option>
+<option>Facial</option>
+</select>
+
+<button type="submit">Book Now</button>
+</form>
+</div>
+</body>
+</html>
