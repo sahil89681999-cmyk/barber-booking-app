@@ -1,14 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Admin Panel</title>
+<title>Sycho Saloon - Admin</title>
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<div class="container">
-<h1>Admin Panel</h1>
-<h2>Current Token: {{current_token}}</h2>
-<a href="/next"><button>Next Token</button></a>
+
+<div class="overlay">
+    <div class="card">
+        <h1 class="brand">Sycho Saloon</h1>
+        <h2>Admin Panel</h2>
+
+        <div class="token-box">
+            Current Token: <span>{{current_token}}</span>
+        </div>
+
+        <a href="/next">
+            <button class="next-btn">Next Token</button>
+        </a>
+    </div>
 </div>
+
 </body>
 </html>
