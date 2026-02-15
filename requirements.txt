@@ -1,5 +1,6 @@
 Flask
 pandas
 openpyxl
+psycopg2-binary
 twilio
 gunicorn
