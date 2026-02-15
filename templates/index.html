@@ -1,31 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Barber Booking</title>
+<title>Sycho Saloon</title>
 <link rel="stylesheet" href="/static/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<div class="container">
-<h1>Book Appointment</h1>
-<h2>Current Token: {{current_token}}</h2>
 
-<form action="/book" method="POST">
-<input type="text" name="name" placeholder="Your Name" required>
-<input type="text" name="mobile" placeholder="Mobile Number" required>
+<div class="overlay">
+    <div class="card">
+        <h1 class="brand">Sycho Saloon</h1>
+        <p class="tagline">Premium Grooming Experience</p>
 
-<select name="barber">
-<option>Raj</option>
-<option>Sameer</option>
-</select>
+        <div class="token-box">
+            Current Token: <span>{{current_token}}</span>
+        </div>
 
-<select name="service">
-<option>Haircut</option>
-<option>Beard</option>
-<option>Facial</option>
-</select>
+        <form action="/book" method="POST">
+            <input type="text" name="name" placeholder="Your Name" required>
+            <input type="text" name="mobile" placeholder="Mobile Number" required>
 
-<button type="submit">Book Now</button>
-</form>
+            <select name="barber">
+                <option value="">Select Barber</option>
+                <option>Raj</option>
+                <option>Sameer</option>
+            </select>
+
+            <select name="service">
+                <option value="">Select Service</option>
+                <option>Haircut</option>
+                <option>Beard</option>
+                <option>Facial</option>
+            </select>
+
+            <button type="submit">Book Appointment</button>
+        </form>
+    </div>
 </div>
+
 </body>
 </html>
